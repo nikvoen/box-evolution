@@ -11,11 +11,12 @@ interface Square {
 
 interface Props {
     userLevel: number;
+    userBalance: number;
     onLevelChange: (newLevel: number) => void;
+    onBalanceChange: (newBalance: number) => void;
 }
 
-export const Boxes: React.FC<Props> = ({ userLevel, onLevelChange }) => {
-
+export const Boxes: React.FC<Props> = ({ userLevel, userBalance, onLevelChange, onBalanceChange }) =>     {
     const initialSquares: Square[] = [
         { id: uuid(), position: { x: 50, y: 150 }, level: 1 },
         { id: uuid(), position: { x: 150, y: 150 }, level: 1 },
@@ -30,17 +31,19 @@ export const Boxes: React.FC<Props> = ({ userLevel, onLevelChange }) => {
     const [intersectedSquare, setIntersectedSquare] = useState<Square | null>(null);
 
     useEffect(() => {
-        const handleLevelChange = (level: number) => {
-            const newLevel = userLevel + level;
-            onLevelChange(newLevel);
+        const levelChange = (level: number) => {
+            onLevelChange(userLevel + level);
         };
+        const balanceChange = (value: number) => {
+            onBalanceChange(userBalance + value);
+        };
+
         const handleMouseMove = (e: MouseEvent) => {
             moveSquare(e.clientX, e.clientY);
         };
         const handleMouseUp = () => {
             endDrag();
         };
-
         const handleTouchMove = (e: TouchEvent) => {
             e.preventDefault();
             const { clientX, clientY } = e.touches[0];
@@ -57,8 +60,8 @@ export const Boxes: React.FC<Props> = ({ userLevel, onLevelChange }) => {
                         ? {
                             ...square,
                             position: {
-                                x: clientX,
-                                y: clientY,
+                                x: Math.min(Math.max(clientX, 0), 375-50),
+                                y: Math.min(Math.max(clientY, 0), 555-50),
                             },
                         }
                         : square
@@ -84,7 +87,9 @@ export const Boxes: React.FC<Props> = ({ userLevel, onLevelChange }) => {
         const endDrag = () => {
             if (draggingSquareId !== null) {
                 if (intersectedSquare) {
-                    handleLevelChange(intersectedSquare.level);
+                    levelChange(intersectedSquare.level);
+                    balanceChange(100);
+
                     const newSquare = {
                         id: uuid(),
                         position: {
@@ -119,7 +124,7 @@ export const Boxes: React.FC<Props> = ({ userLevel, onLevelChange }) => {
             document.removeEventListener('touchmove', handleTouchMove);
             document.removeEventListener('touchend', handleEnd);
         };
-    }, [draggingSquareId, squares, intersectedSquare, userLevel, onLevelChange]);
+    }, [draggingSquareId, squares, intersectedSquare, userLevel, onLevelChange, onBalanceChange, userBalance]);
 
     const handleDragStart = (squareId: string) => {
         setDraggingSquareId(squareId);

@@ -1,9 +1,9 @@
 import './App.css'
-import Menu from "./components/pages/Menu/Menu.tsx";
+import Service from "./components/pages/Service/Service.tsx";
 
 function App() {
     return (
-        <Menu />
+        <Service />
   )
 }
 
