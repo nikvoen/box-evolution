@@ -53,8 +53,10 @@ const Service = () => {
                                         onSquareChange={squaresChange}
                                         onLevelChange={levelChange}
                                         onBalanceChange={balanceChange}/>}
-                {!buttonChange && <Store userLevel={userLevel}
+                {!buttonChange && <Store userSquares={userSquares}
+                                         userLevel={userLevel}
                                          userBalance={userBalance}
+                                         onSquareChange={squaresChange}
                                          onBalanceChange={balanceChange}/>}
             </div>
             <div className="controls">

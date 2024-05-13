@@ -1,13 +1,35 @@
 import React from 'react';
 import './store.css';
+import { v4 as uuid } from 'uuid';
+
+interface Square {
+    id: string;
+    position: { x: number; y: number };
+    level: number;
+}
 
 interface StoreProps {
+    userSquares: Square[];
     userLevel: number;
     userBalance: number;
+    onSquareChange: (newSquares: Square[]) => void;
     onBalanceChange: (newBalance: number) => void;
 }
 
-const Store: React.FC<StoreProps> = ({ userLevel, userBalance, onBalanceChange }) => {
+const Store: React.FC<StoreProps> = ({ userLevel, userBalance, userSquares, onSquareChange, onBalanceChange }) => {
+    const addSquare = (
+        position: { x: number; y: number },
+        level: number,
+        onSquareChange: (newSquares: Square[]) => void
+    ) => {
+        const newSquare: Square = {
+            id: uuid(),
+            position,
+            level
+        };
+        const updatedSquares = [...userSquares, newSquare];
+        onSquareChange(updatedSquares);
+    };
 
     const handleBuy = (cost: number, boxLevel: number) => {
         const maxLevelToBuy = userLevel - 2;
@@ -15,6 +37,7 @@ const Store: React.FC<StoreProps> = ({ userLevel, userBalance, onBalanceChange }
             if (userBalance >= cost) {
                 const newBalance = userBalance - cost;
                 onBalanceChange(newBalance);
+                addSquare({ x: 50, y: 350 }, boxLevel, onSquareChange);
             } else {
                 alert("Not enough coins!");
             }

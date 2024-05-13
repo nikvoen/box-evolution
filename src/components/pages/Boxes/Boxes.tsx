@@ -23,9 +23,6 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
     const [intersectedSquare, setIntersectedSquare] = useState<Square | null>(null);
 
     useEffect(() => {
-        const squareChange = (newSquare: Square[]) => {
-            onSquareChange(newSquare);
-        };
         const levelChange = (level: number) => {
             onLevelChange(userLevel + level);
         };
@@ -61,7 +58,7 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
                         }
                         : square
                 );
-                squareChange(updatedSquares);
+                onSquareChange(updatedSquares);
 
                 const draggingSquare = userSquares.find(
                     (square) => square.id === draggingSquareId
@@ -100,7 +97,7 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
                             square.id !== draggingSquareId &&
                             square.id !== intersectedSquare.id
                     );
-                    squareChange([...updatedSquares, newSquare]);
+                    onSquareChange([...updatedSquares, newSquare]);
                 }
                 setDraggingSquareId(null);
                 setIntersectedSquare(null);
