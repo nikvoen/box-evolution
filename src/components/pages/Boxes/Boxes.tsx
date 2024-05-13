@@ -55,8 +55,8 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
                         ? {
                             ...square,
                             position: {
-                                x: Math.min(Math.max(clientX, 0), 375-50),
-                                y: Math.min(Math.max(clientY, 0), 555-50),
+                                x: Math.min(Math.max(clientX, 5), 375-55),
+                                y: Math.min(Math.max(clientY, 80), 555-55),
                             },
                         }
                         : square
