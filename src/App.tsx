@@ -3,8 +3,10 @@ import Service from "./components/pages/Service/Service.tsx";
 
 function App() {
     return (
-        <Service />
-  )
+        <div className="App">
+            <Service />
+        </div>
+    );
 }
 
 export default App

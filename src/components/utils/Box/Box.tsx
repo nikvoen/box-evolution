@@ -5,10 +5,11 @@ interface BoxProps {
     id: string;
     position: { x: number; y: number };
     level: number;
-    onDragStart: (id: string) => void;
+    onDragStart: (id: string, pos: { x: number; y: number }) => void;
 }
 
 export const Box: React.FC<BoxProps> = ({ id, position, level, onDragStart }) => {
+
     const getColor = (level: number): string => {
         switch (level) {
             case 1:
@@ -29,25 +30,26 @@ export const Box: React.FC<BoxProps> = ({ id, position, level, onDragStart }) =>
     };
 
     const handleMouseDown = (): void => {
-        onDragStart(id);
+        onDragStart(id, position);
     };
 
     const handleTouchStart = (): void => {
-        onDragStart(id);
+        onDragStart(id, position);
     };
 
     return (
-        <div
-            className="box"
-            style={{
-                left: position.x,
-                top: position.y,
-                backgroundColor: getColor(level),
-            }}
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-        >
-            {level}
+        <div className={"outer"}>
+            <div className="box"
+                style={{
+                    left: position.x,
+                    top: position.y,
+                    backgroundColor: getColor(level),
+                }}
+                onMouseDown={handleMouseDown}
+                onTouchStart={handleTouchStart}
+            >
+                {level}
+            </div>
         </div>
     );
 };

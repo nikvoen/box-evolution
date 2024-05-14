@@ -20,6 +20,7 @@ interface Props {
 
 export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, onSquareChange, onLevelChange, onBalanceChange }) =>     {
     const [draggingSquareId, setDraggingSquareId] = useState<string | null>(null);
+    const [draggingSquarePos, setDraggingSquarePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const [intersectedSquare, setIntersectedSquare] = useState<Square | null>(null);
 
     useEffect(() => {
@@ -52,8 +53,8 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
                         ? {
                             ...square,
                             position: {
-                                x: Math.min(Math.max(clientX, 5), 375-55),
-                                y: Math.min(Math.max(clientY, 80), 555-55),
+                                x: Math.min(Math.max(clientX - 50, 5), 375-105),
+                                y: Math.min(Math.max(clientY - 50, 80), 555-105),
                             },
                         }
                         : square
@@ -66,8 +67,8 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
                 const intersected = userSquares.find((square) => {
                     if (square.id !== draggingSquareId && square.level === draggingSquare!.level) {
                         return (
-                            Math.abs(square.position.x - draggingSquare!.position.x) < 50 &&
-                            Math.abs(square.position.y - draggingSquare!.position.y) < 50
+                            Math.abs(square.position.x - draggingSquare!.position.x) <= 100 &&
+                            Math.abs(square.position.y - draggingSquare!.position.y) <= 100
                         );
                     }
                     return false;
@@ -85,8 +86,8 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
                     const newSquare = {
                         id: uuid(),
                         position: {
-                            x: (userSquares[0].position.x + intersectedSquare.position.x) / 2,
-                            y: (userSquares[0].position.y + intersectedSquare.position.y) / 2,
+                            x: intersectedSquare.position.x,
+                            y: intersectedSquare.position.y,
                         },
                         level: intersectedSquare.level + 1,
                     };
@@ -98,6 +99,19 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
                             square.id !== intersectedSquare.id
                     );
                     onSquareChange([...updatedSquares, newSquare]);
+                } else {
+                    const updatedSquares = userSquares.map((square) =>
+                        square.id === draggingSquareId
+                            ? {
+                                ...square,
+                                position: {
+                                    x: draggingSquarePos.x,
+                                    y: draggingSquarePos.y,
+                                },
+                            }
+                            : square
+                    );
+                    onSquareChange(updatedSquares);
                 }
                 setDraggingSquareId(null);
                 setIntersectedSquare(null);
@@ -116,17 +130,11 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
             document.removeEventListener('touchmove', handleTouchMove);
             document.removeEventListener('touchend', handleEnd);
         };
-    }, [draggingSquareId,
-        userSquares,
-        intersectedSquare,
-        userLevel,
-        onLevelChange,
-        onBalanceChange,
-        userBalance,
-        onSquareChange]);
+    }, [draggingSquareId, userSquares, intersectedSquare, userLevel, onLevelChange, onBalanceChange, userBalance, onSquareChange, draggingSquarePos.x, draggingSquarePos.y]);
 
-    const handleDragStart = (squareId: string) => {
+    const handleDragStart = (squareId: string, pos: { x: number; y: number }) => {
         setDraggingSquareId(squareId);
+        setDraggingSquarePos(pos);
     };
 
     return (

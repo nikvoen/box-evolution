@@ -47,7 +47,7 @@ const Store: React.FC<StoreProps> = ({ userLevel, userBalance, userSquares, onSq
     };
 
     return (
-        <div className="">
+        <div className="store">
             <p>Box lv.1: 100 coins <button onClick={() => handleBuy(100, 1)}>Buy</button></p>
             <p>Box lv.2: 100 coins <button onClick={() => handleBuy(100, 2)}>Buy</button></p>
             <p>Box lv.3: 100 coins <button onClick={() => handleBuy(100, 3)}>Buy</button></p>

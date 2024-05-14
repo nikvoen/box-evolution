@@ -4,3 +4,19 @@
   //padding: 2rem;
   text-align: center;
 }
+
+.box-item {
+  width: 80px;
+  height: 80px;
+  background-color: lightskyblue;
+  border-radius: 10px;
+  margin: 20px 0 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  position: relative;
+  cursor: move;
+  -webkit-user-select: none;
+}
