@@ -7,18 +7,3 @@ body, html {
   //max-width: 375px;
   //margin: 0 auto;
 }
-
-.grid-container {
-  position: relative;
-  width: 330px; /* (100 + 10) * 2 + 10 */
-  height: 330px; /* (100 + 10) * 3 + 10 */
-  border: 1px solid #000;
-}
-
-.box {
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  background-color: #ccc; /* Любой цвет, который вы хотите */
-  border: 1px solid #000;
-}
