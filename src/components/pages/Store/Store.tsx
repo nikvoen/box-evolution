@@ -24,7 +24,7 @@ const Store: React.FC<StoreProps> = ({ userLevel, userBalance, userSquares, onSq
             if (userBalance >= cost) {
                 const newBalance = userBalance - cost;
                 onBalanceChange(newBalance);
-                addSquare({ x: 50, y: 350 }, boxLevel, onSquareChange);
+                addSquare({ x: 15, y: 450 }, boxLevel, onSquareChange);
             } else {
                 alert("Not enough coins!");
             }
