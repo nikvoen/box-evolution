@@ -1,20 +1,7 @@
 import React from 'react';
 import './store.css';
 import { v4 as uuid } from 'uuid';
-
-interface Square {
-    id: string;
-    position: { x: number; y: number };
-    level: number;
-}
-
-interface StoreProps {
-    userSquares: Square[];
-    userLevel: number;
-    userBalance: number;
-    onSquareChange: (newSquares: Square[]) => void;
-    onBalanceChange: (newBalance: number) => void;
-}
+import { Square, StoreProps } from '../../assets/GameContext'
 
 const Store: React.FC<StoreProps> = ({ userLevel, userBalance, userSquares, onSquareChange, onBalanceChange }) => {
     const addSquare = (

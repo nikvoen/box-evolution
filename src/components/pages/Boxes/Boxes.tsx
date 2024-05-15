@@ -2,23 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuid } from 'uuid';
 import Box from "../../utils/Box/Box.tsx";
 import './boxes.css';
+import { Square, BoxesProps } from '../../assets/GameContext'
 
-interface Square {
-    id: string;
-    position: { x: number; y: number };
-    level: number;
-}
-
-interface Props {
-    userSquares: Square[];
-    userLevel: number;
-    userBalance: number;
-    onSquareChange: (newSquares: Square[]) => void;
-    onLevelChange: (newLevel: number) => void;
-    onBalanceChange: (newBalance: number) => void;
-}
-
-export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, onSquareChange, onLevelChange, onBalanceChange }) =>     {
+export const Boxes: React.FC<BoxesProps> = ({ userSquares, userLevel, onSquareChange, onLevelChange }) => {
     const [draggingSquareId, setDraggingSquareId] = useState<string | null>(null);
     const [draggingSquarePos, setDraggingSquarePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const [intersectedSquare, setIntersectedSquare] = useState<Square | null>(null);
@@ -26,9 +12,6 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
     useEffect(() => {
         const levelChange = (level: number) => {
             onLevelChange(userLevel + level);
-        };
-        const balanceChange = (value: number) => {
-            onBalanceChange(userBalance + value);
         };
 
         const handleMouseMove = (e: MouseEvent) => {
@@ -81,7 +64,6 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
             if (draggingSquareId !== null) {
                 if (intersectedSquare) {
                     levelChange(intersectedSquare.level);
-                    balanceChange(100);
 
                     const newSquare = {
                         id: uuid(),
@@ -130,7 +112,13 @@ export const Boxes: React.FC<Props> = ({ userSquares, userLevel, userBalance, on
             document.removeEventListener('touchmove', handleTouchMove);
             document.removeEventListener('touchend', handleEnd);
         };
-    }, [draggingSquareId, userSquares, intersectedSquare, userLevel, onLevelChange, onBalanceChange, userBalance, onSquareChange, draggingSquarePos.x, draggingSquarePos.y]);
+    }, [draggingSquareId,
+        userSquares,
+        intersectedSquare,
+        userLevel,
+        onLevelChange,
+        onSquareChange,
+        draggingSquarePos.x, draggingSquarePos.y]);
 
     const handleDragStart = (squareId: string, pos: { x: number; y: number }) => {
         setDraggingSquareId(squareId);

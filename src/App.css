@@ -1,22 +1,24 @@
-#root {
-  //max-width: 375px;
-  margin: 0 auto;
-  //padding: 2rem;
-  text-align: center;
+body, html {
+  padding: 0;
+  font-family: Arial, sans-serif;
 }
 
-.box-item {
-  width: 80px;
-  height: 80px;
-  background-color: lightskyblue;
-  border-radius: 10px;
-  margin: 20px 0 20px 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24px;
-  font-weight: bold;
+#root {
+  //max-width: 375px;
+  //margin: 0 auto;
+}
+
+.grid-container {
   position: relative;
-  cursor: move;
-  -webkit-user-select: none;
+  width: 330px; /* (100 + 10) * 2 + 10 */
+  height: 330px; /* (100 + 10) * 3 + 10 */
+  border: 1px solid #000;
+}
+
+.box {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: #ccc; /* Любой цвет, который вы хотите */
+  border: 1px solid #000;
 }
