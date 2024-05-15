@@ -6,6 +6,13 @@ export interface Square {
     level: number;
 }
 
+export interface BoxProps {
+    id: string;
+    position: { x: number; y: number };
+    level: number;
+    onDragStart: (id: string, pos: { x: number; y: number }) => void;
+}
+
 export interface BoxesProps {
     userSquares: Square[];
     userLevel: number;

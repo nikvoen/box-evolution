@@ -1,15 +1,8 @@
 import React from 'react';
 import './box.css';
-
-interface BoxProps {
-    id: string;
-    position: { x: number; y: number };
-    level: number;
-    onDragStart: (id: string, pos: { x: number; y: number }) => void;
-}
+import {BoxProps} from '../../assets/GameContext'
 
 export const Box: React.FC<BoxProps> = ({ id, position, level, onDragStart }) => {
-
     const getColor = (level: number): string => {
         switch (level) {
             case 1:
