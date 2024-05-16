@@ -18,6 +18,7 @@ body, html {
 }
 
 .store {
+  margin-top: 160px;
   text-align: center;
 }
 
@@ -44,15 +45,15 @@ body, html {
 }
 
 .menu-button {
-  height: 40px;
-  width: 120px;
+  height: 50px;
+  width: 100px;
   border-radius: 10px;
   border: 2px solid lightblue;
   background-color: aliceblue;
   font-size: 18px;
   transition: .3s;
   cursor: pointer;
-  margin: 20px 20px 0 20px;
+  //margin: 20px 20px 0 20px;
 
   &:hover {
     background-color: lightblue;
