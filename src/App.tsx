@@ -72,19 +72,19 @@ const DragAndDrop: React.FC = () => {
     };
 
     return (
-            <div className="grid-container">
-                {cards.map(item => (
-                    <Box
-                        key={item.id}
-                        item={item}
-                        onDragStart={dragStart}
-                        onDragLeave={dragLeave}
-                        onDragEnd={dragEnd}
-                        onDragOver={dragOver}
-                        onDrop={drop}
-                    />
-                ))}
-            </div>
+        <div className="grid-container">
+            {cards.map(item => (
+                <Box
+                    key={item.id}
+                    item={item}
+                    onDragStart={dragStart}
+                    onDragLeave={dragLeave}
+                    onDragEnd={dragEnd}
+                    onDragOver={dragOver}
+                    onDrop={drop}
+                />
+            ))}
+        </div>
     );
 };
 
@@ -120,7 +120,6 @@ const Shop: React.FC = () => {
             {showStore && (
                 <div className="store-container">
                     <div className="store-window">
-                        <button className={"menu-button"} onClick={() => setShowStore(false)}>Close</button>
                         <p className={"text"}>Balance: {userData.balance}</p>
                         <p className={"text"}>Level: {userData.level}</p>
                         <div className="store-item">
@@ -147,6 +146,7 @@ const Shop: React.FC = () => {
                             <span className="price">Box lv.6: 100 coins</span>{" "}
                             <button onClick={() => handleBuy(100, 6)}>Buy</button>
                         </div>
+                        <button className={"menu-button"} onClick={() => setShowStore(false)}>Close</button>
                     </div>
                 </div>
             )}

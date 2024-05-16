@@ -18,7 +18,7 @@ body, html {
 }
 
 .store {
-  margin-top: 160px;
+  margin-top: 110px;
   text-align: center;
 }
 
@@ -53,7 +53,6 @@ body, html {
   font-size: 18px;
   transition: .3s;
   cursor: pointer;
-  //margin: 20px 20px 0 20px;
 
   &:hover {
     background-color: lightblue;
@@ -96,6 +95,7 @@ body, html {
 }
 
 .grid-container {
+  margin-top: 50px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 130px);
