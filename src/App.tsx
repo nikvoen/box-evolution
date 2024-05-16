@@ -1,211 +1,196 @@
-import React, {useEffect, useState} from "react";
-import { Square, BoxProps, BoxesProps, StoreProps, BalanceRates, initialSquares } from './GameContext';
-import { v4 as uuid } from 'uuid';
 import './App.css'
+import React, {createContext, useContext, useEffect, useState} from "react";
+import { v4 as uuid } from 'uuid';
 
-const Box: React.FC<BoxProps> = ({ id, position, level, onDragStart }) => {
-    const getColor = (level: number): string => {
-        switch (level) {
-            case 1:
-                return 'red';
-            case 2:
-                return 'orange';
-            case 3:
-                return 'yellow';
-            case 4:
-                return 'green';
-            case 5:
-                return 'blue';
-            case 6:
-                return 'indigo';
-            default:
-                return 'black';
+interface box {
+    id: string;
+    level: number;
+}
+
+interface user {
+    level: number;
+    balance: number;
+}
+
+interface BoxProps {
+    item: box;
+    onDragStart: (e: React.DragEvent<HTMLDivElement>, item: box) => void;
+    onDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
+    onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
+    onDragOver: (e: React.DragEvent<HTMLDivElement>, targetCard: box) => void;
+    onDrop: (e: React.DragEvent<HTMLDivElement>, targetCard: box) => void;
+}
+
+interface GameContextType {
+    userData: user;
+    changeLevel: (newLevel: number) => void;
+    draggable: box;
+    setDraggable: React.Dispatch<React.SetStateAction<box>>;
+    setUserData: React.Dispatch<React.SetStateAction<user>>;
+    cards: box[];
+    setCards: React.Dispatch<React.SetStateAction<box[]>>;
+}
+
+const GameContext = createContext<GameContextType>({} as GameContextType);
+
+interface GameProviderProps {
+    children: React.ReactNode;
+}
+
+const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
+    const [userData, setUserData] = useState<user>({ level: 0, balance: 0 });
+    const [draggable, setDraggable] = useState<box>({ id: '', level: 0 });
+    const [cards, setCards] = useState<box[]>([
+        { id: uuid(), level: 1 },
+        { id: uuid(), level: 1 },
+        { id: uuid(), level: 2 },
+        { id: uuid(), level: 3 },
+        { id: uuid(), level: 4 },
+        { id: uuid(), level: 5 }
+    ]);
+
+    const changeLevel = (newLevel: number) => {
+        setUserData(prevUserData => ({ ...prevUserData, level: prevUserData.level + newLevel }));
+    };
+
+    useEffect(() => {
+        const perSec = [1, 2, 3, 4, 5, 6, 7];
+        const perHour = [10, 20, 30, 40, 50, 60, 70];
+        const everySecond = setInterval(() => {
+            let newBalance = 0;
+            cards.forEach(card => {
+                newBalance += perSec[card.level - 1];
+            });
+            setUserData(prevUserData => ({
+                ...prevUserData,
+                balance: prevUserData.balance + newBalance
+            }));
+        }, 1000);
+        const everyHour = setInterval(() => {
+            let newBalance = 0;
+            cards.forEach(card => {
+                newBalance += perHour[card.level - 1];
+            });
+            setUserData(prevUserData => ({
+                ...prevUserData,
+                balance: prevUserData.balance + newBalance
+            }));
+        }, 3600000);
+
+        return () => {
+            clearInterval(everySecond);
+            clearInterval(everyHour);
+        }
+    }, [cards]);
+
+    return (
+        <GameContext.Provider value={{ userData, setUserData, changeLevel, draggable, setDraggable, cards, setCards }}>
+            {children}
+        </GameContext.Provider>
+    );
+};
+
+const Box: React.FC<BoxProps> = ({ item, onDragStart, onDragLeave, onDragEnd, onDragOver, onDrop }) => {
+    return (
+        <div
+            key={item.id}
+            onDragStart={(e) => onDragStart(e, item)}
+            onDragLeave={(e) => onDragLeave(e)}
+            onDragEnd={(e) => onDragEnd(e)}
+            onDragOver={(e) => onDragOver(e, item)}
+            onDrop={(e) => onDrop(e, item)}
+            draggable={true}
+            className={"box"}
+        >
+            {item.level}
+        </div>
+    );
+};
+
+const DragAndDrop: React.FC = () => {
+    const { changeLevel, draggable, setDraggable, cards, setCards } = useContext(GameContext);
+
+    const dragStart = (e: React.DragEvent<HTMLDivElement>, item: box) => {
+        e.dataTransfer.setData('cardId', item.id);
+        setDraggable({id: item.id, level: item.level});
+        e.currentTarget.style.backgroundColor = 'gray';
+        e.currentTarget.style.opacity = '0';
+    };
+
+    const dragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.currentTarget.style.backgroundColor = 'lightblue';
+        e.currentTarget.style.border = '3px solid #ffffff';
+        e.currentTarget.style.width = '100px';
+        e.currentTarget.style.height = '100px';
+    };
+
+    const dragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+        e.currentTarget.style.backgroundColor = 'lightblue';
+        e.currentTarget.style.opacity = '1';
+    };
+
+    const dragOver = (e: React.DragEvent<HTMLDivElement>, item: box) => {
+        e.preventDefault();
+        e.currentTarget.style.border = '3px solid #2980b9';
+
+        if ((draggable.level === item.level) && (draggable.id !== item.id)) {
+            e.currentTarget.style.backgroundColor = 'aquamarine';
+            e.currentTarget.style.width = '115px';
+            e.currentTarget.style.height = '115px';
+        } else {
+            e.currentTarget.style.backgroundColor = 'lightcoral';
         }
     };
 
-    const handleMouseDown = (): void => {
-        onDragStart(id, position);
-    };
+    const drop = (e: React.DragEvent<HTMLDivElement>, targetCard: box) => {
+        e.preventDefault();
 
-    const handleTouchStart = (): void => {
-        onDragStart(id, position);
+        if ((draggable.level === targetCard.level) && (draggable.id !== targetCard.id)) {
+            targetCard.level++;
+            changeLevel(draggable.level);
+            const remainingCards = cards.filter(item => item.id !== draggable.id);
+            setCards(remainingCards);
+        }
+
+        e.currentTarget.style.backgroundColor = 'lightblue';
+        e.currentTarget.style.border = '3px solid #ffffff';
+        e.currentTarget.style.width = '100px';
+        e.currentTarget.style.height = '100px';
     };
 
     return (
-        <div className={"outer"}>
-            <div className="box"
-                 style={{
-                     left: position.x,
-                     top: position.y,
-                     backgroundColor: getColor(level),
-                 }}
-                 onMouseDown={handleMouseDown}
-                 onTouchStart={handleTouchStart}
-            >
-                {level}
+            <div className="grid-container">
+                {cards.map(item => (
+                    <Box
+                        key={item.id}
+                        item={item}
+                        onDragStart={dragStart}
+                        onDragLeave={dragLeave}
+                        onDragEnd={dragEnd}
+                        onDragOver={dragOver}
+                        onDrop={drop}
+                    />
+                ))}
             </div>
-        </div>
     );
 };
 
-const Boxes: React.FC<BoxesProps> = ({ userSquares, userLevel, onSquareChange, onLevelChange }) => {
-    const [draggingSquareId, setDraggingSquareId] = useState<string | null>(null);
-    const [draggingSquarePos, setDraggingSquarePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-    const [intersectedSquare, setIntersectedSquare] = useState<Square | null>(null);
-
-    useEffect(() => {
-        const levelChange = (level: number) => {
-            onLevelChange(userLevel + level);
-        };
-
-        const handleMouseMove = (e: MouseEvent) => {
-            moveSquare(e.clientX, e.clientY);
-        };
-        const handleMouseUp = () => {
-            endDrag();
-        };
-        const handleTouchMove = (e: TouchEvent) => {
-            e.preventDefault();
-            const { clientX, clientY } = e.touches[0];
-            moveSquare(clientX, clientY);
-        };
-        const handleEnd = () => {
-            endDrag();
-        };
-
-        const moveSquare = (clientX: number, clientY: number) => {
-            if (draggingSquareId !== null) {
-                const updatedSquares = userSquares.map((square) =>
-                    square.id === draggingSquareId
-                        ? {
-                            ...square,
-                            position: {
-                                x: Math.min(Math.max(clientX - 50, 5), 375-105),
-                                y: Math.min(Math.max(clientY - 50, 80), 555-105),
-                            },
-                        }
-                        : square
-                );
-                onSquareChange(updatedSquares);
-
-                const draggingSquare = userSquares.find(
-                    (square) => square.id === draggingSquareId
-                );
-                const intersected = userSquares.find((square) => {
-                    if (square.id !== draggingSquareId && square.level === draggingSquare!.level) {
-                        return (
-                            Math.abs(square.position.x - draggingSquare!.position.x) <= 100 &&
-                            Math.abs(square.position.y - draggingSquare!.position.y) <= 100
-                        );
-                    }
-                    return false;
-                });
-                setIntersectedSquare(intersected || null);
-            }
-        };
-
-        const endDrag = () => {
-            if (draggingSquareId !== null) {
-                if (intersectedSquare) {
-                    levelChange(intersectedSquare.level);
-
-                    const newSquare = {
-                        id: uuid(),
-                        position: {
-                            x: intersectedSquare.position.x,
-                            y: intersectedSquare.position.y,
-                        },
-                        level: intersectedSquare.level + 1,
-                    };
-
-                    const updatedSquares = userSquares.filter(
-                        (square) =>
-                            square.id !== intersectedSquare.id &&
-                            square.id !== draggingSquareId &&
-                            square.id !== intersectedSquare.id
-                    );
-                    onSquareChange([...updatedSquares, newSquare]);
-                } else {
-                    const updatedSquares = userSquares.map((square) =>
-                        square.id === draggingSquareId
-                            ? {
-                                ...square,
-                                position: {
-                                    x: draggingSquarePos.x,
-                                    y: draggingSquarePos.y,
-                                },
-                            }
-                            : square
-                    );
-                    onSquareChange(updatedSquares);
-                }
-                setDraggingSquareId(null);
-                setIntersectedSquare(null);
-            }
-        };
-
-        document.addEventListener('touchmove', handleTouchMove, { passive: false });
-        document.addEventListener('touchend', handleEnd);
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleEnd);
-        };
-    }, [draggingSquareId,
-        userSquares,
-        intersectedSquare,
-        userLevel,
-        onLevelChange,
-        onSquareChange,
-        draggingSquarePos.x, draggingSquarePos.y]);
-
-    const handleDragStart = (squareId: string, pos: { x: number; y: number }) => {
-        setDraggingSquareId(squareId);
-        setDraggingSquarePos(pos);
-    };
-
-    return (
-        <div >
-            {userSquares.map((square) => (
-                <Box
-                    key={square.id}
-                    id={square.id}
-                    position={square.position}
-                    level={square.level}
-                    onDragStart={handleDragStart}
-                />
-            ))}
-        </div>
-    );
-};
-
-const Store: React.FC<StoreProps> = ({ userLevel, userBalance, userSquares, onSquareChange, onBalanceChange }) => {
-    const addSquare = (
-        position: { x: number; y: number },
-        level: number,
-        onSquareChange: (newSquares: Square[]) => void
-    ) => {
-        const newSquare: Square = {
-            id: uuid(),
-            position,
-            level
-        };
-        const updatedSquares = [...userSquares, newSquare];
-        onSquareChange(updatedSquares);
-    };
+const Shop: React.FC = () => {
+    const { userData, setUserData, cards, setCards } = useContext(GameContext);
 
     const handleBuy = (cost: number, boxLevel: number) => {
-        const maxLevelToBuy = userLevel - 2;
+        const maxLevelToBuy = userData.level - 2;
         if (boxLevel <= maxLevelToBuy) {
-            if (userBalance >= cost) {
-                const newBalance = userBalance - cost;
-                onBalanceChange(newBalance);
-                addSquare({ x: 15, y: 450 }, boxLevel, onSquareChange);
+            if (userData.balance >= cost) {
+                const newBalance = userData.balance - cost;
+                setUserData({ level: userData.level, balance: newBalance });
+
+                if (cards.length <= 5) {
+                    const newCard: box = { id: uuid(), level: boxLevel };
+                    setCards([...cards, newCard]);
+                } else {
+                    alert("Too many boxes!");
+                }
             } else {
                 alert("Not enough coins!");
             }
@@ -214,95 +199,55 @@ const Store: React.FC<StoreProps> = ({ userLevel, userBalance, userSquares, onSq
         }
     };
 
-    return (
-        <div className="store">
-            <p>Box lv.1: 100 coins <button onClick={() => handleBuy(100, 1)}>Buy</button></p>
-            <p>Box lv.2: 100 coins <button onClick={() => handleBuy(100, 2)}>Buy</button></p>
-            <p>Box lv.3: 100 coins <button onClick={() => handleBuy(100, 3)}>Buy</button></p>
-            <p>Box lv.4: 100 coins <button onClick={() => handleBuy(100, 4)}>Buy</button></p>
-            <p>Box lv.5: 100 coins <button onClick={() => handleBuy(100, 5)}>Buy</button></p>
-            <p>Box lv.6: 100 coins <button onClick={() => handleBuy(100, 6)}>Buy</button></p>
-        </div>
-    );
-}
-
-const Service = () => {
-    const [userSquares, setSquares] = useState<Square[]>(initialSquares);
-    const [userLevel, setLevel] = useState(0);
-    const [userBalance, setBalance] = useState(0);
-    const [buttonChange, setButtonChange] = useState(true);
-
-    useEffect(() => {
-        const updateBalance = () => {
-            let totalBalance = userBalance;
-            userSquares.forEach((square) => {
-                const rate = BalanceRates[square.level];
-                totalBalance += rate.perSecond;
-            });
-            setBalance(totalBalance);
-        };
-
-        const intervalId = setInterval(() => {
-            updateBalance();
-        }, 1000);
-
-        const hourlyIntervalId = setInterval(() => {
-            userSquares.forEach((square) => {
-                const rate = BalanceRates[square.level];
-                setBalance((prevBalance) => prevBalance + rate.perHour);
-            });
-        }, 3600000);
-
-        return () => {
-            clearInterval(intervalId);
-            clearInterval(hourlyIntervalId);
-        };
-    }, [userBalance, userSquares]);
-
-    const squaresChange = (newSquares: Square[]) => {
-        setSquares(newSquares);
-    };
-    const levelChange = (newLevel: number) => {
-        setLevel(newLevel);
-    };
-    const balanceChange = (newBalance: number) => {
-        setBalance(newBalance);
-    };
-
-    const handleStoreClick = () => {
-        setButtonChange(false);
-    };
-    const handleHomeClick = () => {
-        setButtonChange(true);
-    };
+    const [showStore, setShowStore] = useState(false);
 
     return (
-        <div className="container">
-            <div className="content">
-                <div className="score">Level: {userLevel}</div>
-                <div className="score">Balance: {userBalance}</div>
-                {buttonChange && <Boxes userSquares={userSquares}
-                                        userLevel={userLevel}
-                                        onSquareChange={squaresChange}
-                                        onLevelChange={levelChange} />}
-                {!buttonChange && <Store userSquares={userSquares}
-                                         userLevel={userLevel}
-                                         userBalance={userBalance}
-                                         onSquareChange={squaresChange}
-                                         onBalanceChange={balanceChange} />}
-            </div>
-            <div className="controls">
-                <button onClick={handleStoreClick}>Store</button>
-                <button onClick={handleHomeClick}>Home</button>
-            </div>
+        <div className={"store"}>
+            <button className={"menu-button"} onClick={() => setShowStore(true)}>Store</button>
+            {showStore && (
+                <div className="store-container">
+                    <div className="store-window">
+                        <button className={"menu-button"} onClick={() => setShowStore(false)}>Close</button>
+                        <p className={"text"}>Balance: {userData.balance}</p>
+                        <p className={"text"}>Level: {userData.level}</p>
+                        <div className="store-item">
+                            <span className="price">Box lv.1: 100 coins</span>{" "}
+                            <button onClick={() => handleBuy(100, 1)}>Buy</button>
+                        </div>
+                        <div className="store-item">
+                            <span className="price">Box lv.2: 100 coins</span>{" "}
+                            <button onClick={() => handleBuy(100, 2)}>Buy</button>
+                        </div>
+                        <div className="store-item">
+                            <span className="price">Box lv.3: 100 coins</span>{" "}
+                            <button onClick={() => handleBuy(100, 3)}>Buy</button>
+                        </div>
+                        <div className="store-item">
+                            <span className="price">Box lv.4: 100 coins</span>{" "}
+                            <button onClick={() => handleBuy(100, 4)}>Buy</button>
+                        </div>
+                        <div className="store-item">
+                            <span className="price">Box lv.5: 100 coins</span>{" "}
+                            <button onClick={() => handleBuy(100, 5)}>Buy</button>
+                        </div>
+                        <div className="store-item">
+                            <span className="price">Box lv.6: 100 coins</span>{" "}
+                            <button onClick={() => handleBuy(100, 6)}>Buy</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
-}
+};
 
 function App() {
     return (
-        <div className="App">
-            <Service />
+        <div className={"App"}>
+            <GameProvider>
+                <DragAndDrop/>
+                <Shop/>
+            </GameProvider>
         </div>
     );
 }
