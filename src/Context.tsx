@@ -1,7 +1,14 @@
 import React, {createContext, useEffect, useState} from "react";
 import {v4 as uuid} from "uuid";
 
-export interface box {
+export interface GridPosition {
+    gridColumnStart: number;
+    gridColumnEnd: number;
+    gridRowStart: number;
+    gridRowEnd: number;
+}
+
+export interface box extends GridPosition {
     id: string;
     level: number;
 }
@@ -37,16 +44,24 @@ export interface GameProviderProps {
 export const GameContext = createContext<GameContextType>({} as GameContextType);
 
 export const Context: React.FC<GameProviderProps> = ({ children }) => {
-    const [userData, setUserData] = useState<user>({ level: 0, balance: 0 });
-    const [draggable, setDraggable] = useState<box>({ id: '', level: 0 });
+    const [userData, setUserData] = useState<user>({ level: 0, balance: 1000 });
+    const [draggable, setDraggable] = useState<box>({
+        id: '',
+        level: 0,
+        gridColumnStart: 0,
+        gridColumnEnd: 0,
+        gridRowStart: 0,
+        gridRowEnd: 0,
+    });
     const [cards, setCards] = useState<box[]>([
-        { id: uuid(), level: 1 },
-        { id: uuid(), level: 1 },
-        { id: uuid(), level: 2 },
-        { id: uuid(), level: 3 },
-        { id: uuid(), level: 4 },
-        { id: uuid(), level: 5 }
+        { id: uuid(), level: 1, gridColumnStart: 1, gridColumnEnd: 2, gridRowStart: 1, gridRowEnd: 2 },
+        { id: uuid(), level: 1, gridColumnStart: 2, gridColumnEnd: 3, gridRowStart: 1, gridRowEnd: 2 },
+        { id: uuid(), level: 2, gridColumnStart: 3, gridColumnEnd: 4, gridRowStart: 1, gridRowEnd: 2 },
+        { id: uuid(), level: 3, gridColumnStart: 1, gridColumnEnd: 2, gridRowStart: 2, gridRowEnd: 3 },
+        { id: uuid(), level: 4, gridColumnStart: 2, gridColumnEnd: 3, gridRowStart: 2, gridRowEnd: 3 },
+        { id: uuid(), level: 5, gridColumnStart: 3, gridColumnEnd: 4, gridRowStart: 2, gridRowEnd: 3 },
     ]);
+
 
     const changeLevel = (newLevel: number) => {
         setUserData(prevUserData => ({ ...prevUserData, level: prevUserData.level + newLevel }));

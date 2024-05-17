@@ -14,6 +14,12 @@ const Box: React.FC<BoxProps> = ({ item, onDragStart, onDragLeave, onDragEnd, on
             onDrop={(e) => onDrop(e, item)}
             draggable={true}
             className={"box"}
+            style={{
+                gridColumnStart: item.gridColumnStart,
+                gridColumnEnd: item.gridColumnEnd,
+                gridRowStart: item.gridRowStart,
+                gridRowEnd: item.gridRowEnd,
+            }}
         >
             {item.level}
         </div>
@@ -25,7 +31,14 @@ const DragAndDrop: React.FC = () => {
 
     const dragStart = (e: React.DragEvent<HTMLDivElement>, item: box) => {
         e.dataTransfer.setData('cardId', item.id);
-        setDraggable({id: item.id, level: item.level});
+        setDraggable({
+            id: item.id,
+            level: item.level,
+            gridColumnStart: item.gridColumnStart,
+            gridColumnEnd: item.gridColumnEnd,
+            gridRowStart: item.gridRowStart,
+            gridRowEnd: item.gridRowEnd,
+        });
         e.currentTarget.style.backgroundColor = 'gray';
         e.currentTarget.style.opacity = '0';
     };
@@ -99,8 +112,45 @@ const Shop: React.FC = () => {
                 setUserData({ level: userData.level, balance: newBalance });
 
                 if (cards.length <= 5) {
-                    const newCard: box = { id: uuid(), level: boxLevel };
-                    setCards([...cards, newCard]);
+                    const findEmptyCell = (): { gridColumn: number; gridRow: number } | null => {
+                        const sortedCards = [...cards];
+                        sortedCards.sort((a, b) => {
+                            if (a.gridRowStart === b.gridRowStart) {
+                                return a.gridColumnStart - b.gridColumnStart;
+                            }
+                            return a.gridRowStart - b.gridRowStart;
+                        });
+
+                        for (let row = 1; row <= 2; row++) {
+                            for (let column = 1; column <= 3; column++) {
+                                const cellOccupied = sortedCards.some(card => {
+                                    return (
+                                        card.gridColumnStart <= column &&
+                                        card.gridColumnEnd > column &&
+                                        card.gridRowStart <= row &&
+                                        card.gridRowEnd > row
+                                    );
+                                });
+                                if (!cellOccupied) {
+                                    return { gridColumn: column, gridRow: row };
+                                }
+                            }
+                        }
+                        return null;
+                    };
+
+                    const newCardPosition = findEmptyCell();
+                    if (newCardPosition) {
+                        const newCard: box = {
+                            id: uuid(),
+                            level: boxLevel,
+                            gridColumnStart: newCardPosition.gridColumn,
+                            gridColumnEnd: newCardPosition.gridColumn + 1,
+                            gridRowStart: newCardPosition.gridRow,
+                            gridRowEnd: newCardPosition.gridRow + 1,
+                        };
+                        setCards([...cards, newCard]);
+                    }
                 } else {
                     alert("Too many boxes!");
                 }

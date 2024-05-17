@@ -5,20 +5,24 @@ body, html {
 }
 
 #root {
-  max-width: 500px;
-  margin: 0 auto;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .App {
-  margin-top: 50px;
-  height: 500px;
+  width: 450px;
+  height: 600px;
   border: 5px solid lightblue;
   border-radius: 20px;
   background-color: azure;
 }
 
 .store {
-  margin-top: 110px;
+  margin-top: 220px;
   text-align: center;
 }
 
@@ -114,4 +118,10 @@ body, html {
   cursor: grab;
   transition: opacity 0.3s ease-in-out;
   -webkit-user-select: none;
+  touch-action: none;
+}
+
+.box.placeholder {
+  background-color: transparent;
+  border: none;
 }
