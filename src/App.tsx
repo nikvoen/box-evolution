@@ -3,10 +3,13 @@ import { v4 as uuid } from 'uuid';
 import React, {useContext, useState} from "react";
 import {Context, GameContext, BoxProps, box} from './Context.tsx';
 
-const Box: React.FC<BoxProps> = ({ item, onDragStart, onDragLeave, onDragEnd, onDragOver, onDrop }) => {
+const Box: React.FC<BoxProps> = ({ item, onTouchStart, onTouchMove, onTouchEnd, onDragStart, onDragLeave, onDragEnd, onDragOver, onDrop }) => {
     return (
         <div
             key={item.id}
+            onTouchStart={(e) => onTouchStart(e, item)}
+            onTouchMove={(e) => onTouchMove(e, item)}
+            onTouchEnd={(e) => onTouchEnd(e, item)}
             onDragStart={(e) => onDragStart(e, item)}
             onDragLeave={(e) => onDragLeave(e)}
             onDragEnd={(e) => onDragEnd(e)}
@@ -20,6 +23,8 @@ const Box: React.FC<BoxProps> = ({ item, onDragStart, onDragLeave, onDragEnd, on
                 gridRowStart: item.gridRowStart,
                 gridRowEnd: item.gridRowEnd,
             }}
+            data-id={item.id}
+            data-level={item.level}
         >
             {item.level}
         </div>
@@ -28,6 +33,49 @@ const Box: React.FC<BoxProps> = ({ item, onDragStart, onDragLeave, onDragEnd, on
 
 const DragAndDrop: React.FC = () => {
     const { changeLevel, draggable, setDraggable, cards, setCards } = useContext(GameContext);
+
+    const onTouchStart = (e: React.TouchEvent<HTMLDivElement>, item: box) => {
+        e.preventDefault();
+
+        setDraggable({
+            id: item.id,
+            level: item.level,
+            gridColumnStart: item.gridColumnStart,
+            gridColumnEnd: item.gridColumnEnd,
+            gridRowStart: item.gridRowStart,
+            gridRowEnd: item.gridRowEnd,
+        });
+    };
+
+    const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        const moving = e.currentTarget;
+        moving.style.position = 'fixed';
+        moving.style.left = String(e.changedTouches[0].clientX - moving.clientWidth/2) + 'px';
+        moving.style.top = String(e.changedTouches[0].clientY - moving.clientHeight/2) + 'px';
+    };
+
+    const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+        const moving = e.currentTarget;
+        moving.style.position = 'static';
+
+        const touch = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
+
+        const targetLevel = target.dataset.level;
+        const targetId = target.dataset.id;
+
+        if ((String(draggable.level) === targetLevel) && (draggable.id !== targetId)) {
+            changeLevel(draggable.level);
+
+            const updatedCards = cards.map(card => {
+                if (card.id === targetId) {
+                    return { ...card, level: draggable.level +  1 };
+                }
+                return card;
+            }).filter(item => item.id !== draggable.id);
+            setCards(updatedCards);
+        }
+    };
 
     const dragStart = (e: React.DragEvent<HTMLDivElement>, item: box) => {
         e.dataTransfer.setData('cardId', item.id);
@@ -90,6 +138,9 @@ const DragAndDrop: React.FC = () => {
                 <Box
                     key={item.id}
                     item={item}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
                     onDragStart={dragStart}
                     onDragLeave={dragLeave}
                     onDragEnd={dragEnd}

@@ -20,6 +20,11 @@ export interface user {
 
 export interface BoxProps {
     item: box;
+
+    onTouchStart: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
+    onTouchMove: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
+    onTouchEnd: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
+
     onDragStart: (e: React.DragEvent<HTMLDivElement>, item: box) => void;
     onDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
     onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
