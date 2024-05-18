@@ -21,18 +21,18 @@ export interface user {
 export interface BoxProps {
     item: box;
 
-    onTouchStart: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
-    onTouchMove: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
-    onTouchEnd: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
+    touchStart: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
+    touchMove: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
+    touchEnd: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
 
-    onDragStart: (e: React.DragEvent<HTMLDivElement>, item: box) => void;
-    onDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
-    onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
-    onDragOver: (e: React.DragEvent<HTMLDivElement>, targetCard: box) => void;
-    onDrop: (e: React.DragEvent<HTMLDivElement>, targetCard: box) => void;
+    mouseDown: (e: React.MouseEvent<HTMLDivElement>, item: box) => void;
+    mouseMove: (e: React.MouseEvent<HTMLDivElement>, item: box) => void;
+    mouseUp: (e: React.MouseEvent<HTMLDivElement>, item: box) => void;
 }
 
 export interface GameContextType {
+    click: number;
+    setClick: React.Dispatch<React.SetStateAction<number>>;
     userData: user;
     changeLevel: (newLevel: number) => void;
     draggable: box;
@@ -49,6 +49,7 @@ export interface GameProviderProps {
 export const GameContext = createContext<GameContextType>({} as GameContextType);
 
 export const Context: React.FC<GameProviderProps> = ({ children }) => {
+    const [click, setClick] = useState(0);
     const [userData, setUserData] = useState<user>({ level: 0, balance: 1000 });
     const [draggable, setDraggable] = useState<box>({
         id: '',
@@ -103,7 +104,7 @@ export const Context: React.FC<GameProviderProps> = ({ children }) => {
     }, [cards]);
 
     return (
-        <GameContext.Provider value={{ userData, setUserData, changeLevel, draggable, setDraggable, cards, setCards }}>
+        <GameContext.Provider value={{ userData, setUserData, changeLevel, draggable, setDraggable, cards, setCards, click, setClick }}>
             {children}
         </GameContext.Provider>
     );

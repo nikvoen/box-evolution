@@ -3,18 +3,18 @@ import { v4 as uuid } from 'uuid';
 import React, {useContext, useState} from "react";
 import {Context, GameContext, BoxProps, box} from './Context.tsx';
 
-const Box: React.FC<BoxProps> = ({ item, onTouchStart, onTouchMove, onTouchEnd, onDragStart, onDragLeave, onDragEnd, onDragOver, onDrop }) => {
+const Box: React.FC<BoxProps> = ({ item, touchStart, touchMove, touchEnd, mouseUp, mouseMove, mouseDown }) => {
     return (
         <div
             key={item.id}
-            onTouchStart={(e) => onTouchStart(e, item)}
-            onTouchMove={(e) => onTouchMove(e, item)}
-            onTouchEnd={(e) => onTouchEnd(e, item)}
-            onDragStart={(e) => onDragStart(e, item)}
-            onDragLeave={(e) => onDragLeave(e)}
-            onDragEnd={(e) => onDragEnd(e)}
-            onDragOver={(e) => onDragOver(e, item)}
-            onDrop={(e) => onDrop(e, item)}
+            onTouchStart={(e) => touchStart(e, item)}
+            onTouchMove={(e) => touchMove(e, item)}
+            onTouchEnd={(e) => touchEnd(e, item)}
+
+            onMouseDown={(e) => mouseDown(e, item)}
+            onMouseMove={(e) => mouseMove(e, item)}
+            onMouseUp={(e) => mouseUp(e, item)}
+
             draggable={true}
             className={"box"}
             style={{
@@ -32,10 +32,30 @@ const Box: React.FC<BoxProps> = ({ item, onTouchStart, onTouchMove, onTouchEnd, 
 };
 
 const DragAndDrop: React.FC = () => {
-    const { changeLevel, draggable, setDraggable, cards, setCards } = useContext(GameContext);
+    const { changeLevel, draggable, setDraggable, cards, setCards, click, setClick } = useContext(GameContext);
 
-    const onTouchStart = (e: React.TouchEvent<HTMLDivElement>, item: box) => {
-        e.preventDefault();
+    const isTouched = (event: React.TouchEvent<HTMLDivElement>, targetRect: DOMRect) => {
+        const touch = event.changedTouches[0];
+        return (
+            touch.clientX > targetRect.left &&
+            touch.clientX < targetRect.right &&
+            touch.clientY > targetRect.top &&
+            touch.clientY < targetRect.bottom
+        );
+    };
+
+    const isClicked = (event: React.MouseEvent<HTMLDivElement>, targetRect: DOMRect) => {
+        return (
+            event.clientX > targetRect.left &&
+            event.clientX < targetRect.right &&
+            event.clientY > targetRect.top &&
+            event.clientY < targetRect.bottom
+        );
+    };
+
+    const touchStart = (e: React.TouchEvent<HTMLDivElement>, item: box) => {
+        const moving = e.currentTarget;
+        moving.classList.add('selected');
 
         setDraggable({
             id: item.id,
@@ -47,38 +67,69 @@ const DragAndDrop: React.FC = () => {
         });
     };
 
-    const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touchMove = (e: React.TouchEvent<HTMLDivElement>) => {
         const moving = e.currentTarget;
+        const touch = e.changedTouches[0];
+
         moving.style.position = 'fixed';
-        moving.style.left = String(e.changedTouches[0].clientX - moving.clientWidth/2) + 'px';
-        moving.style.top = String(e.changedTouches[0].clientY - moving.clientHeight/2) + 'px';
+        moving.style.left = String(touch.clientX - moving.clientWidth/2) + 'px';
+        moving.style.top = String(touch.clientY - moving.clientHeight/2) + 'px';
+
+        document.querySelectorAll('.box').forEach((box) => {
+            const boxId = box.getAttribute('data-id');
+            const boxLevel = box.getAttribute('data-level');
+            const boxRect = box.getBoundingClientRect();
+
+            if (boxId !== draggable.id && isTouched(e, boxRect)) {
+                if (boxLevel === String(draggable.level)) {
+                    box.classList.add('green');
+                } else {
+                    box.classList.add('red');
+                }
+            } else {
+                box.classList.remove('green');
+                box.classList.remove('red');
+            }
+        });
     };
 
-    const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
         const moving = e.currentTarget;
         moving.style.position = 'static';
+        moving.classList.remove('selected');
 
-        const touch = e.changedTouches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
+        document.querySelectorAll('.box').forEach((box) => {
+            box.classList.remove('green');
+            box.classList.remove('red');
+        });
 
-        const targetLevel = target.dataset.level;
-        const targetId = target.dataset.id;
+        document.querySelectorAll('.box').forEach((box) => {
+            const boxId = box.getAttribute('data-id');
+            const boxLevel = box.getAttribute('data-level');
+            const boxRect = box.getBoundingClientRect();
 
-        if ((String(draggable.level) === targetLevel) && (draggable.id !== targetId)) {
-            changeLevel(draggable.level);
-
-            const updatedCards = cards.map(card => {
-                if (card.id === targetId) {
-                    return { ...card, level: draggable.level +  1 };
+            if (boxId !== draggable.id && isTouched(e, boxRect)) {
+                if (boxLevel === String(draggable.level)) {
+                    changeLevel(draggable.level);
+                    const updatedCards = cards.map(card => {
+                        if (card.id === boxId) {
+                            return { ...card, level: draggable.level +  1 };
+                        }
+                        return card;
+                    }).filter(item => item.id !== draggable.id);
+                    setCards(updatedCards);
                 }
-                return card;
-            }).filter(item => item.id !== draggable.id);
-            setCards(updatedCards);
-        }
+            }
+        });
     };
 
-    const dragStart = (e: React.DragEvent<HTMLDivElement>, item: box) => {
-        e.dataTransfer.setData('cardId', item.id);
+
+    const mouseDown = (e: React.MouseEvent<HTMLDivElement>, item: box) => {
+        setClick(1);
+        e.preventDefault();
+        const moving = e.currentTarget;
+        moving.classList.add('selected');
+
         setDraggable({
             id: item.id,
             level: item.level,
@@ -87,49 +138,63 @@ const DragAndDrop: React.FC = () => {
             gridRowStart: item.gridRowStart,
             gridRowEnd: item.gridRowEnd,
         });
-        e.currentTarget.style.backgroundColor = 'gray';
-        e.currentTarget.style.opacity = '0';
     };
 
-    const dragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-        e.currentTarget.style.backgroundColor = 'lightblue';
-        e.currentTarget.style.border = '3px solid #ffffff';
-        e.currentTarget.style.width = '100px';
-        e.currentTarget.style.height = '100px';
-    };
+    const mouseMove = (e: React.MouseEvent<HTMLDivElement>, item: box) => {
+        if (click && item.id === draggable.id) {
+            const moving = e.currentTarget;
+            moving.style.position = 'fixed';
+            moving.style.left = String(e.clientX - moving.clientWidth / 2) + 'px';
+            moving.style.top = String(e.clientY - moving.clientHeight / 2) + 'px';
 
-    const dragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-        e.currentTarget.style.backgroundColor = 'lightblue';
-        e.currentTarget.style.opacity = '1';
-    };
+            document.querySelectorAll('.box').forEach((box) => {
+                const boxId = box.getAttribute('data-id');
+                const boxLevel = box.getAttribute('data-level');
+                const boxRect = box.getBoundingClientRect();
 
-    const dragOver = (e: React.DragEvent<HTMLDivElement>, item: box) => {
-        e.preventDefault();
-        e.currentTarget.style.border = '3px solid #2980b9';
-
-        if ((draggable.level === item.level) && (draggable.id !== item.id)) {
-            e.currentTarget.style.backgroundColor = 'aquamarine';
-            e.currentTarget.style.width = '115px';
-            e.currentTarget.style.height = '115px';
-        } else {
-            e.currentTarget.style.backgroundColor = 'lightcoral';
+                if (boxId !== draggable.id && isClicked(e, boxRect)) {
+                    if (boxLevel === String(draggable.level)) {
+                        box.classList.add('green');
+                    } else {
+                        box.classList.add('red');
+                    }
+                } else {
+                    box.classList.remove('green');
+                    box.classList.remove('red');
+                }
+            });
         }
     };
 
-    const drop = (e: React.DragEvent<HTMLDivElement>, targetCard: box) => {
-        e.preventDefault();
+    const mouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+        setClick(0);
+        const moving = e.currentTarget;
+        moving.classList.remove('selected');
+        moving.style.position = 'static';
 
-        if ((draggable.level === targetCard.level) && (draggable.id !== targetCard.id)) {
-            targetCard.level++;
-            changeLevel(draggable.level);
-            const remainingCards = cards.filter(item => item.id !== draggable.id);
-            setCards(remainingCards);
-        }
+        document.querySelectorAll('.box').forEach((box) => {
+            box.classList.remove('green');
+            box.classList.remove('red');
+        });
 
-        e.currentTarget.style.backgroundColor = 'lightblue';
-        e.currentTarget.style.border = '3px solid #ffffff';
-        e.currentTarget.style.width = '100px';
-        e.currentTarget.style.height = '100px';
+        document.querySelectorAll('.box').forEach((box) => {
+            const boxId = box.getAttribute('data-id');
+            const boxLevel = box.getAttribute('data-level');
+            const boxRect = box.getBoundingClientRect();
+
+            if (boxId !== draggable.id && isClicked(e, boxRect)) {
+                if (boxLevel === String(draggable.level)) {
+                    changeLevel(draggable.level);
+                    const updatedCards = cards.map(card => {
+                        if (card.id === boxId) {
+                            return { ...card, level: draggable.level +  1 };
+                        }
+                        return card;
+                    }).filter(item => item.id !== draggable.id);
+                    setCards(updatedCards);
+                }
+            }
+        });
     };
 
     return (
@@ -138,14 +203,12 @@ const DragAndDrop: React.FC = () => {
                 <Box
                     key={item.id}
                     item={item}
-                    onTouchStart={onTouchStart}
-                    onTouchMove={onTouchMove}
-                    onTouchEnd={onTouchEnd}
-                    onDragStart={dragStart}
-                    onDragLeave={dragLeave}
-                    onDragEnd={dragEnd}
-                    onDragOver={dragOver}
-                    onDrop={drop}
+                    touchStart={touchStart}
+                    touchMove={touchMove}
+                    touchEnd={touchEnd}
+                    mouseUp={mouseUp}
+                    mouseMove={mouseMove}
+                    mouseDown={mouseDown}
                 />
             ))}
         </div>
