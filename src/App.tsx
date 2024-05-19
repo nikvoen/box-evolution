@@ -1,9 +1,9 @@
 import './App.css'
 import { v4 as uuid } from 'uuid';
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {Context, GameContext, BoxProps, box} from './Context.tsx';
 
-const Box: React.FC<BoxProps> = ({ item, touchStart, touchMove, touchEnd, mouseUp, mouseMove, mouseDown }) => {
+const Box: React.FC<BoxProps> = ({ item, touchStart, touchMove, touchEnd, mouseUp, mouseDown }) => {
     return (
         <div
             key={item.id}
@@ -12,10 +12,8 @@ const Box: React.FC<BoxProps> = ({ item, touchStart, touchMove, touchEnd, mouseU
             onTouchEnd={(e) => touchEnd(e, item)}
 
             onMouseDown={(e) => mouseDown(e, item)}
-            onMouseMove={(e) => mouseMove(e, item)}
             onMouseUp={(e) => mouseUp(e, item)}
 
-            draggable={true}
             className={"box"}
             style={{
                 gridColumnStart: item.gridColumnStart,
@@ -72,8 +70,8 @@ const DragAndDrop: React.FC = () => {
         const touch = e.changedTouches[0];
 
         moving.style.position = 'fixed';
-        moving.style.left = String(touch.clientX - moving.clientWidth/2) + 'px';
-        moving.style.top = String(touch.clientY - moving.clientHeight/2) + 'px';
+        moving.style.left = String(touch.clientX - moving.clientWidth / 2) + 'px';
+        moving.style.top = String(touch.clientY - moving.clientHeight / 2) + 'px';
 
         document.querySelectorAll('.box').forEach((box) => {
             const boxId = box.getAttribute('data-id');
@@ -113,7 +111,7 @@ const DragAndDrop: React.FC = () => {
                     changeLevel(draggable.level);
                     const updatedCards = cards.map(card => {
                         if (card.id === boxId) {
-                            return { ...card, level: draggable.level +  1 };
+                            return { ...card, level: draggable.level + 1 };
                         }
                         return card;
                     }).filter(item => item.id !== draggable.id);
@@ -122,7 +120,6 @@ const DragAndDrop: React.FC = () => {
             }
         });
     };
-
 
     const mouseDown = (e: React.MouseEvent<HTMLDivElement>, item: box) => {
         setClick(1);
@@ -140,31 +137,7 @@ const DragAndDrop: React.FC = () => {
         });
     };
 
-    const mouseMove = (e: React.MouseEvent<HTMLDivElement>, item: box) => {
-        if (click && item.id === draggable.id) {
-            const moving = e.currentTarget;
-            moving.style.position = 'fixed';
-            moving.style.left = String(e.clientX - moving.clientWidth / 2) + 'px';
-            moving.style.top = String(e.clientY - moving.clientHeight / 2) + 'px';
 
-            document.querySelectorAll('.box').forEach((box) => {
-                const boxId = box.getAttribute('data-id');
-                const boxLevel = box.getAttribute('data-level');
-                const boxRect = box.getBoundingClientRect();
-
-                if (boxId !== draggable.id && isClicked(e, boxRect)) {
-                    if (boxLevel === String(draggable.level)) {
-                        box.classList.add('green');
-                    } else {
-                        box.classList.add('red');
-                    }
-                } else {
-                    box.classList.remove('green');
-                    box.classList.remove('red');
-                }
-            });
-        }
-    };
 
     const mouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
         setClick(0);
@@ -187,7 +160,7 @@ const DragAndDrop: React.FC = () => {
                     changeLevel(draggable.level);
                     const updatedCards = cards.map(card => {
                         if (card.id === boxId) {
-                            return { ...card, level: draggable.level +  1 };
+                            return { ...card, level: draggable.level + 1 };
                         }
                         return card;
                     }).filter(item => item.id !== draggable.id);
@@ -196,6 +169,41 @@ const DragAndDrop: React.FC = () => {
             }
         });
     };
+
+    useEffect(() => {
+        const mouseMove = (e: MouseEvent) => {
+            if (click && draggable.id) {
+                const moving = document.querySelector(`.box[data-id='${draggable.id}']`) as HTMLDivElement;
+                if (moving) {
+                    moving.style.position = 'fixed';
+                    moving.style.left = String(e.clientX - moving.clientWidth / 2) + 'px';
+                    moving.style.top = String(e.clientY - moving.clientHeight / 2) + 'px';
+
+                    document.querySelectorAll('.box').forEach((box) => {
+                        const boxId = box.getAttribute('data-id');
+                        const boxLevel = box.getAttribute('data-level');
+                        const boxRect = box.getBoundingClientRect();
+
+                        if (boxId !== draggable.id && isClicked(e as unknown as React.MouseEvent<HTMLDivElement>, boxRect)) {
+                            if (boxLevel === String(draggable.level)) {
+                                box.classList.add('green');
+                            } else {
+                                box.classList.add('red');
+                            }
+                        } else {
+                            box.classList.remove('green');
+                            box.classList.remove('red');
+                        }
+                    });
+                }
+            }
+        };
+
+        document.addEventListener('mousemove', mouseMove);
+        return () => {
+            document.removeEventListener('mousemove', mouseMove);
+        };
+    }, [click, draggable]);
 
     return (
         <div className="grid-container">
@@ -207,7 +215,6 @@ const DragAndDrop: React.FC = () => {
                     touchMove={touchMove}
                     touchEnd={touchEnd}
                     mouseUp={mouseUp}
-                    mouseMove={mouseMove}
                     mouseDown={mouseDown}
                 />
             ))}
