@@ -147,15 +147,8 @@ body, html {
   position: static;
 }
 
-.visible {
-  display: block;
-}
-
-.hide {
-  opacity: 0;
-}
-
 .delete-outer {
+  opacity: 0;
   user-select: none;
   position: absolute;
   width: 100%;

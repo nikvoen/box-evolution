@@ -62,8 +62,8 @@ const DragAndDrop: React.FC = () => {
         });
     };
     const touchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-        document.querySelectorAll('.delete-outer').forEach((delOut) => {
-            delOut.classList.remove('hide');
+        document.querySelectorAll<HTMLElement>('.delete-outer').forEach((delOut) => {
+            delOut.style.opacity = '1';
         });
 
         const moving = e.currentTarget;
@@ -100,8 +100,8 @@ const DragAndDrop: React.FC = () => {
         });
     };
     const touchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-        document.querySelectorAll('.delete-outer').forEach((delOut) => {
-            delOut.classList.add('hide');
+        document.querySelectorAll<HTMLElement>('.delete-outer').forEach((delOut) => {
+            delOut.style.opacity = '0';
         });
 
         const moving = e.currentTarget;
@@ -163,11 +163,6 @@ const DragAndDrop: React.FC = () => {
         moving.classList.remove('selected');
         moving.style.position = 'static';
 
-        document.querySelectorAll('.box').forEach((box) => {
-            box.classList.remove('green');
-            box.classList.remove('red');
-        });
-
         document.querySelectorAll('.delete-button').forEach((delBtn) => {
             delBtn.classList.remove('deleting');
             const boxRect = delBtn.getBoundingClientRect();
@@ -177,7 +172,11 @@ const DragAndDrop: React.FC = () => {
             }
         });
 
-        document.querySelectorAll('.box').forEach((box) => {
+        document.querySelectorAll<HTMLElement>('.box').forEach((box) => {
+            box.classList.remove('green');
+            box.classList.remove('red');
+            box.style.cursor = 'grab';
+
             const boxId = box.getAttribute('data-id');
             const boxLevel = box.getAttribute('data-level');
             const boxRect = box.getBoundingClientRect();
@@ -195,24 +194,26 @@ const DragAndDrop: React.FC = () => {
                 }
             }
         });
+
+        document.querySelectorAll<HTMLElement>('.delete-outer').forEach((delOut) => {
+            delOut.style.opacity = '0';
+        });
     };
     useEffect(() => {
-        document.querySelectorAll('.delete-outer').forEach((delOut) => {
-            delOut.classList.add('hide');
-        });
-
         const mouseMove = (e: MouseEvent) => {
             if (click && draggable.id) {
-                document.querySelectorAll('.delete-outer').forEach((delOut) => {
-                    delOut.classList.remove('hide');
+                document.querySelectorAll<HTMLElement>('.delete-outer').forEach((delOut) => {
+                    delOut.style.opacity = '1';
                 });
+
                 const moving = document.querySelector(`.box[data-id='${draggable.id}']`) as HTMLDivElement;
                 if (moving) {
                     moving.style.position = 'fixed';
                     moving.style.left = String(e.clientX - moving.clientWidth / 2) + 'px';
                     moving.style.top = String(e.clientY - moving.clientHeight / 2) + 'px';
 
-                    document.querySelectorAll('.box').forEach((box) => {
+                    document.querySelectorAll<HTMLElement>('.box').forEach((box) => {
+                        box.style.cursor = 'grabbing';
                         const boxId = box.getAttribute('data-id');
                         const boxLevel = box.getAttribute('data-level');
                         const boxRect = box.getBoundingClientRect();
