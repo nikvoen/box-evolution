@@ -21,8 +21,8 @@ export interface user {
 export interface BoxProps {
     item: box;
     touchStart: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
-    touchMove: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
-    touchEnd: (e: React.TouchEvent<HTMLDivElement>, item: box) => void;
+    touchMove: (e: React.TouchEvent<HTMLDivElement>) => void;
+    touchEnd: (e: React.TouchEvent<HTMLDivElement>) => void;
     mouseDown: (e: React.MouseEvent<HTMLDivElement>, item: box) => void;
     mouseUp: (e: React.MouseEvent<HTMLDivElement>, item: box) => void;
 }

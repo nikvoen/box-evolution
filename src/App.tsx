@@ -8,12 +8,10 @@ const Box: React.FC<BoxProps> = ({ item, touchStart, touchMove, touchEnd, mouseU
         <div
             key={item.id}
             onTouchStart={(e) => touchStart(e, item)}
-            onTouchMove={(e) => touchMove(e, item)}
-            onTouchEnd={(e) => touchEnd(e, item)}
-
+            onTouchMove={(e) => touchMove(e)}
+            onTouchEnd={(e) => touchEnd(e)}
             onMouseDown={(e) => mouseDown(e, item)}
             onMouseUp={(e) => mouseUp(e, item)}
-
             className={"box"}
             style={{
                 gridColumnStart: item.gridColumnStart,
@@ -41,7 +39,6 @@ const DragAndDrop: React.FC = () => {
             touch.clientY < targetRect.bottom
         );
     };
-
     const isClicked = (event: React.MouseEvent<HTMLDivElement>, targetRect: DOMRect) => {
         return (
             event.clientX > targetRect.left &&
@@ -64,8 +61,11 @@ const DragAndDrop: React.FC = () => {
             gridRowEnd: item.gridRowEnd,
         });
     };
-
     const touchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        document.querySelectorAll('.delete-outer').forEach((delOut) => {
+            delOut.classList.remove('hide');
+        });
+
         const moving = e.currentTarget;
         const touch = e.changedTouches[0];
 
@@ -89,9 +89,21 @@ const DragAndDrop: React.FC = () => {
                 box.classList.remove('red');
             }
         });
-    };
 
+        document.querySelectorAll('.delete-button').forEach((delBtn) => {
+            const boxRect = delBtn.getBoundingClientRect();
+            if (isTouched(e, boxRect)) {
+                delBtn.classList.add('deleting');
+            } else {
+                delBtn.classList.remove('deleting');
+            }
+        });
+    };
     const touchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+        document.querySelectorAll('.delete-outer').forEach((delOut) => {
+            delOut.classList.add('hide');
+        });
+
         const moving = e.currentTarget;
         moving.style.position = 'static';
         moving.classList.remove('selected');
@@ -119,6 +131,15 @@ const DragAndDrop: React.FC = () => {
                 }
             }
         });
+
+        document.querySelectorAll('.delete-button').forEach((delBtn) => {
+            delBtn.classList.remove('deleting');
+            const boxRect = delBtn.getBoundingClientRect();
+            if (isTouched(e, boxRect)) {
+                const updatedCards = cards.filter(item => item.id !== draggable.id);
+                setCards(updatedCards);
+            }
+        });
     };
 
     const mouseDown = (e: React.MouseEvent<HTMLDivElement>, item: box) => {
@@ -136,9 +157,6 @@ const DragAndDrop: React.FC = () => {
             gridRowEnd: item.gridRowEnd,
         });
     };
-
-
-
     const mouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
         setClick(0);
         const moving = e.currentTarget;
@@ -148,6 +166,15 @@ const DragAndDrop: React.FC = () => {
         document.querySelectorAll('.box').forEach((box) => {
             box.classList.remove('green');
             box.classList.remove('red');
+        });
+
+        document.querySelectorAll('.delete-button').forEach((delBtn) => {
+            delBtn.classList.remove('deleting');
+            const boxRect = delBtn.getBoundingClientRect();
+            if (isClicked(e as unknown as React.MouseEvent<HTMLDivElement>, boxRect)) {
+                const updatedCards = cards.filter(item => item.id !== draggable.id);
+                setCards(updatedCards);
+            }
         });
 
         document.querySelectorAll('.box').forEach((box) => {
@@ -169,10 +196,16 @@ const DragAndDrop: React.FC = () => {
             }
         });
     };
-
     useEffect(() => {
+        document.querySelectorAll('.delete-outer').forEach((delOut) => {
+            delOut.classList.add('hide');
+        });
+
         const mouseMove = (e: MouseEvent) => {
             if (click && draggable.id) {
+                document.querySelectorAll('.delete-outer').forEach((delOut) => {
+                    delOut.classList.remove('hide');
+                });
                 const moving = document.querySelector(`.box[data-id='${draggable.id}']`) as HTMLDivElement;
                 if (moving) {
                     moving.style.position = 'fixed';
@@ -195,10 +228,18 @@ const DragAndDrop: React.FC = () => {
                             box.classList.remove('red');
                         }
                     });
+
+                    document.querySelectorAll('.delete-button').forEach((delBtn) => {
+                        const boxRect = delBtn.getBoundingClientRect();
+                        if (isClicked(e as unknown as React.MouseEvent<HTMLDivElement>, boxRect)) {
+                            delBtn.classList.add('deleting');
+                        } else {
+                            delBtn.classList.remove('deleting');
+                        }
+                    });
                 }
             }
         };
-
         document.addEventListener('mousemove', mouseMove);
         return () => {
             document.removeEventListener('mousemove', mouseMove);
@@ -207,6 +248,10 @@ const DragAndDrop: React.FC = () => {
 
     return (
         <div className="grid-container">
+            <div className={"delete-outer"}>
+                <div className={"delete-button"}>Delete</div>
+            </div>
+
             {cards.map(item => (
                 <Box
                     key={item.id}
@@ -223,7 +268,7 @@ const DragAndDrop: React.FC = () => {
 };
 
 const Shop: React.FC = () => {
-    const { userData, setUserData, cards, setCards } = useContext(GameContext);
+    const {userData, setUserData, cards, setCards } = useContext(GameContext);
 
     const handleBuy = (cost: number, boxLevel: number) => {
         const maxLevelToBuy = userData.level - 2;
