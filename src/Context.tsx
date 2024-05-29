@@ -16,6 +16,7 @@ export interface box extends GridPosition {
 export interface user {
     level: number;
     balance: number;
+    buyRatio: number;
 }
 
 export interface BoxProps {
@@ -31,10 +32,10 @@ export interface GameContextType {
     click: number;
     setClick: React.Dispatch<React.SetStateAction<number>>;
     userData: user;
-    changeLevel: (newLevel: number) => void;
+    changeLevel: (value: number) => void;
+    changeBalance: (newBalance: number) => void;
     draggable: box;
     setDraggable: React.Dispatch<React.SetStateAction<box>>;
-    setUserData: React.Dispatch<React.SetStateAction<user>>;
     cards: box[];
     setCards: React.Dispatch<React.SetStateAction<box[]>>;
 }
@@ -58,9 +59,17 @@ export const Context: React.FC<GameProviderProps> = ({ children }) => {
     const [userData, setUserData] = useState(data.userData);
     const [cards, setCards] = useState(data.cards);
 
-    const changeLevel = (newLevel: number) => {
-        setUserData(prevUserData => ({ ...prevUserData, level: prevUserData.level + newLevel }));
+    const changeLevel = (value: number) => {
+        setUserData(prevUserData => ({ ...prevUserData, level: prevUserData.level + value }));
     };
+
+    const changeBalance = (newBalance: number) => {
+        setUserData(prevUserData => ({ ...prevUserData, balance: newBalance }));
+    };
+
+    //const changeBuyRatio = (newRatio: number) => {
+    //    setUserData(prevUserData => ({ ...prevUserData, buyRatio: newRatio }));
+    //};
 
     useEffect(() => {
         const perSec = [1, 2, 3, 4, 5, 6, 7];
@@ -93,7 +102,7 @@ export const Context: React.FC<GameProviderProps> = ({ children }) => {
     }, [cards]);
 
     return (
-        <GameContext.Provider value={{ userData, setUserData, changeLevel, draggable, setDraggable, cards, setCards, click, setClick }}>
+        <GameContext.Provider value={{ userData, changeLevel, changeBalance, draggable, setDraggable, cards, setCards, click, setClick }}>
             {children}
         </GameContext.Provider>
     );

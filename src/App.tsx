@@ -269,14 +269,14 @@ const DragAndDrop: React.FC = () => {
 };
 
 const Shop: React.FC = () => {
-    const {userData, setUserData, cards, setCards } = useContext(GameContext);
+    const {userData, changeBalance, cards, setCards } = useContext(GameContext);
 
     const handleBuy = (cost: number, boxLevel: number) => {
-        const maxLevelToBuy = userData.level - 2;
+        const maxLevelToBuy = userData.level - userData.buyRatio;
         if (boxLevel <= maxLevelToBuy) {
             if (userData.balance >= cost) {
                 const newBalance = userData.balance - cost;
-                setUserData({ level: userData.level, balance: newBalance });
+                changeBalance(newBalance);
 
                 if (cards.length <= 5) {
                     const findEmptyCell = (): { gridColumn: number; gridRow: number } | null => {

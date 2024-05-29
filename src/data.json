@@ -1,7 +1,8 @@
 {
   "userData": {
     "level": 0,
-    "balance": 100
+    "balance": 100,
+    "buyRatio": 3
   },
   "cards": [
     {
